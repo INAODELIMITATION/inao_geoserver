@@ -21,17 +21,17 @@ RUN curl -L http://ares.boundlessgeo.com/geoserver/${GEOSERVER_VERSION_NAME}/geo
     (cd $CATALINA_HOME/webapps/ROOT/WEB-INF/lib; rm jai_core-*jar jai_imageio-*.jar jai_codec-*.jar) && \
     rm -r /tmp/*
 
-# Install plugins (WPS)
-RUN curl -L http://ares.boundlessgeo.com/geoserver/${GEOSERVER_VERSION_NAME}/ext-latest/geoserver-${GEOSERVER_VERSION}-SNAPSHOT-wps-plugin.zip > /tmp/geoserver-wps-plugin.zip && \
-    unzip /tmp/geoserver-wps-plugin.zip -d $CATALINA_HOME/webapps/ROOT/WEB-INF/lib/ && \
-    rm /tmp/*
+# # Install plugins (WPS)
+# RUN curl -L http://ares.boundlessgeo.com/geoserver/${GEOSERVER_VERSION_NAME}/ext-latest/geoserver-${GEOSERVER_VERSION}-SNAPSHOT-wps-plugin.zip > /tmp/geoserver-wps-plugin.zip && \
+#     unzip /tmp/geoserver-wps-plugin.zip -d $CATALINA_HOME/webapps/ROOT/WEB-INF/lib/ && \
+#     rm /tmp/*
 
 # Install plugins (Vectortiles)
 RUN curl -L http://sourceforge.net/projects/geoserver/files/GeoServer/2.13.0/extensions/geoserver-2.13.0-vectortiles-plugin.zip > /tmp/geoserver-2.13.0-vectortiles-plugin.zip && \
     unzip /tmp/geoserver-2.13.0-vectortiles-plugin.zip -d $CATALINA_HOME/webapps/ROOT/WEB-INF/lib/ && \
     rm /tmp/*
 
-VOLUME  ["$HOME/geoserver/data","/usr/local/tomcat/webapps/ROOT/data"]
+VOLUME  ["/home/geoserver/data","/usr/local/tomcat/webapps/ROOT/data"]
 
 # Install Marlin
 RUN cd /usr/local/tomcat/lib && wget https://github.com/bourgesl/marlin-renderer/releases/download/v0.8.2/marlin-0.8.2-Unsafe.jar && \
