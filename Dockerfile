@@ -1,5 +1,5 @@
 FROM tomcat:8-jre8
-MAINTAINER Camptocamp "info@camptocamp.com"
+MAINTAINER inao 
 
 # Install Java JAI libraries
 RUN cd /tmp && \
@@ -30,6 +30,8 @@ RUN curl -L http://ares.boundlessgeo.com/geoserver/${GEOSERVER_VERSION_NAME}/ext
 RUN curl -L http://sourceforge.net/projects/geoserver/files/GeoServer/2.13.0/extensions/geoserver-2.13.0-vectortiles-plugin.zip > /tmp/geoserver-2.13.0-vectortiles-plugin.zip && \
     unzip /tmp/geoserver-2.13.0-vectortiles-plugin.zip -d $CATALINA_HOME/webapps/ROOT/WEB-INF/lib/ && \
     rm /tmp/*
+
+VOLUME  ["$CATALINA_HOME/datadir/","/home/geoserver_data:rw"]
 
 # Install Marlin
 RUN cd /usr/local/tomcat/lib && wget https://github.com/bourgesl/marlin-renderer/releases/download/v0.8.2/marlin-0.8.2-Unsafe.jar && \
