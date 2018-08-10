@@ -31,7 +31,7 @@ RUN curl -L http://sourceforge.net/projects/geoserver/files/GeoServer/2.13.0/ext
     unzip /tmp/geoserver-2.13.0-vectortiles-plugin.zip -d $CATALINA_HOME/webapps/ROOT/WEB-INF/lib/ && \
     rm /tmp/*
 
-VOLUME  ["/home/geoserver/data","/usr/local/tomcat/webapps/ROOT/data"]
+VOLUME  ["/usr/local/tomcat/webapps/ROOT/data"]
 
 # Install Marlin
 RUN cd /usr/local/tomcat/lib && wget https://github.com/bourgesl/marlin-renderer/releases/download/v0.8.2/marlin-0.8.2-Unsafe.jar && \
