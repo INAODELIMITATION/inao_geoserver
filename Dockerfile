@@ -1,41 +1,100 @@
-FROM tomcat:8-jre8
-MAINTAINER inao 
-
-# Install Java JAI libraries
-RUN cd /tmp && \
-    curl -L http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib-linux-amd64.tar.gz | tar xfz - && \
-    curl -L http://download.java.net/media/jai-imageio/builds/release/1.1/jai_imageio-1_1-lib-linux-amd64.tar.gz  | tar xfz - && \
-    mv /tmp/jai*/lib/*.jar $JAVA_HOME/lib/ext/ && \
-    mv /tmp/jai*/lib/*.so $JAVA_HOME/lib/amd64/ && \
-    rm -r /tmp/*
-
-ENV GEOSERVER_VERSION 2.13
-ENV GEOSERVER_VERSION_NAME master
-ENV test test
+FROM ubuntu:trusty
+MAINTAINER winsent<pipetc@gmail.com>
 
 
-# Install geoserver
-RUN curl -L http://ares.boundlessgeo.com/geoserver/${GEOSERVER_VERSION_NAME}/geoserver-${GEOSERVER_VERSION_NAME}-latest-war.zip > /tmp/geoserver.zip && \
-    unzip /tmp/geoserver.zip -d /tmp/geoserver && \
-    rm -rf ${CATALINA_HOME}/webapps/* && \
-    unzip /tmp/geoserver/geoserver.war -d $CATALINA_HOME/webapps/ROOT && \
-    (cd $CATALINA_HOME/webapps/ROOT/WEB-INF/lib; rm jai_core-*jar jai_imageio-*.jar jai_codec-*.jar) && \
-    rm -r /tmp/*
+ENV DEBIAN_FRONTEND noninteractive
+ENV GDAL_PATH /usr/share/gdal
+ENV GEOSERVER_HOME /opt/geoserver
+ENV JAVA_HOME /usr
+ENV GDAL_DATA $GDAL_PATH/1.10
+ENV PATH $GDAL_PATH:$PATH
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/lib/jni:/usr/share/java
 
-# # Install plugins (WPS)
-# RUN curl -L http://ares.boundlessgeo.com/geoserver/${GEOSERVER_VERSION_NAME}/ext-latest/geoserver-${GEOSERVER_VERSION}-SNAPSHOT-wps-plugin.zip > /tmp/geoserver-wps-plugin.zip && \
-#     unzip /tmp/geoserver-wps-plugin.zip -d $CATALINA_HOME/webapps/ROOT/WEB-INF/lib/ && \
-#     rm /tmp/*
+RUN export DEBIAN_FRONTEND=noninteractive
+RUN dpkg-divert --local --rename --add /sbin/initctl
 
-# Install plugins (Vectortiles)
-RUN curl -L http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION_NAME}/extensions/geoserver-${GEOSERVER_VERSION}-vectortiles-plugin.zip > /tmp/geoserver-2.13.0-vectortiles-plugin.zip && \
-    unzip /tmp/geoserver-2.13.0-vectortiles-plugin.zip -d $CATALINA_HOME/webapps/ROOT/WEB-INF/lib/ && \
-    rm /tmp/*
+# Install packages
+RUN \
+  apt-get -y update --fix-missing && \
+  apt-get -y install unzip software-properties-common && \
+  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
+  add-apt-repository -y ppa:webupd8team/java && \
+  apt-get -y update && \
+  apt-get install -y oracle-java8-installer gdal-bin libgdal-java && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/* && \
+  rm -rf /var/cache/oracle-jdk8-installer && \
+  rm -rf /tmp/* /var/tmp/*
 
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+
+# Get native JAI and ImageIO
+RUN \
+    cd $JAVA_HOME && \
+    wget http://data.boundlessgeo.com/suite/jai/jai-1_1_3-lib-linux-amd64-jdk.bin && \
+    echo "yes" | sh jai-1_1_3-lib-linux-amd64-jdk.bin && \
+    rm jai-1_1_3-lib-linux-amd64-jdk.bin
+
+RUN \
+    cd $JAVA_HOME && \
+    export _POSIX2_VERSION=199209 &&\
+    wget http://data.opengeo.org/suite/jai/jai_imageio-1_1-lib-linux-amd64-jdk.bin && \
+    echo "yes" | sh jai_imageio-1_1-lib-linux-amd64-jdk.bin && \
+    rm jai_imageio-1_1-lib-linux-amd64-jdk.bin
+
+#
+# GEOSERVER INSTALLATION
+#
+ENV GEOSERVER_VERSION 2.13.2
+
+# Get GeoServer
+RUN wget -c http://downloads.sourceforge.net/project/geoserver/GeoServer/$GEOSERVER_VERSION/geoserver-$GEOSERVER_VERSION-bin.zip -O ~/geoserver.zip &&\
+    unzip ~/geoserver.zip -d /opt && mv -v /opt/geoserver* /opt/geoserver && \
+    rm ~/geoserver.zip
+
+# Get OGR plugin
+RUN wget -c http://downloads.sourceforge.net/project/geoserver/GeoServer/$GEOSERVER_VERSION/extensions/geoserver-$GEOSERVER_VERSION-ogr-wfs-plugin.zip -O ~/geoserver-ogr-plugin.zip &&\
+    unzip -o ~/geoserver-ogr-plugin.zip -d /opt/geoserver/webapps/geoserver/WEB-INF/lib/ && \
+    rm ~/geoserver-ogr-plugin.zip
+    
+# Get GDAL plugin
+RUN wget -c http://downloads.sourceforge.net/project/geoserver/GeoServer/$GEOSERVER_VERSION/extensions/geoserver-$GEOSERVER_VERSION-gdal-plugin.zip -O ~/geoserver-gdal-plugin.zip &&\
+    unzip -o ~/geoserver-gdal-plugin.zip -d /opt/geoserver/webapps/geoserver/WEB-INF/lib/ && \
+    rm ~/geoserver-gdal-plugin.zip
+
+# Get printing plugin
+RUN wget -c http://downloads.sourceforge.net/project/geoserver/GeoServer/$GEOSERVER_VERSION/extensions/geoserver-$GEOSERVER_VERSION-printing-plugin.zip -O ~/geoserver-printing-plugin.zip &&\
+    unzip ~/geoserver-printing-plugin.zip -d /opt/geoserver/webapps/geoserver/WEB-INF/lib/ && \
+    rm ~/geoserver-printing-plugin.zip
+
+# Get import plugin
+RUN wget -c http://downloads.sourceforge.net/project/geoserver/GeoServer/$GEOSERVER_VERSION/extensions/geoserver-$GEOSERVER_VERSION-importer-plugin.zip -O ~/geoserver-importer-plugin.zip &&\
+    unzip -o ~/geoserver-importer-plugin.zip -d /opt/geoserver/webapps/geoserver/WEB-INF/lib/ && \
+    rm ~/geoserver-importer-plugin.zip
+
+# Get vector tiles plugin
+RUN wget -c http://downloads.sourceforge.net/project/geoserver/GeoServer/$GEOSERVER_VERSION/extensions/geoserver-$GEOSERVER_VERSION-vectortiles-plugin.zip -O ~/geoserver-vectortiles-plugin.zip && \
+    unzip -o ~/geoserver-vectortiles-plugin.zip -d $GEOSERVER_HOME/webapps/geoserver/WEB-INF/lib/ && \
+    rm ~/geoserver-vectortiles-plugin.zip
+
+# Replace GDAL Java bindings
+RUN rm -rf $GEOSERVER_HOME/webapps/geoserver/WEB-INF/lib/imageio-ext-gdal-bindings-1.9.2.jar
+RUN cp /usr/share/java/gdal.jar $GEOSERVER_HOME/webapps/geoserver/WEB-INF/lib/gdal.jar
+
+# Remove old JAI from geoserver
+RUN rm -rf $GEOSERVER_HOME/webapps/geoserver/WEB-INF/lib/jai_codec-1.1.3.jar && \
+    rm -rf $GEOSERVER_HOME/webapps/geoserver/WEB-INF/lib/jai_core-1.1.3.jar && \
+    rm -rf $GEOSERVER_HOME/webapps/geoserver/WEB-INF/lib/jai_imageio-1.1.jar
+
+# Enable JAI-EXT
+RUN sed -i '/-jar start.jar/ s/$/-Dorg.geotools.coverage.jaiext.enabled=true/' /opt/geoserver/bin/startup.sh
+
+# Expose volume data
 VOLUME  ["/usr/local/tomcat/webapps/ROOT/data"]
 
-# Install Marlin
-RUN cd /usr/local/tomcat/lib && wget https://github.com/bourgesl/marlin-renderer/releases/download/v0.8.2/marlin-0.8.2-Unsafe.jar && \
-    wget https://github.com/bourgesl/marlin-renderer/releases/download/v0.8.2/marlin-0.8.2-Unsafe-sun-java2d.jar
+# Set default locale
+ENV LANG C.UTF-8
 
-ENV CATALINA_OPTS "-Xbootclasspath/a:/usr/local/tomcat/lib/marlin-0.7.4-Unsafe.jar -Xbootclasspath/p:/usr/local/tomcat/lib/marlin-0.7.4-Unsafe-sun-java2d.jar -Dsun.java2d.renderer=org.marlin.pisces.PiscesRenderingEngine" 
+# Expose GeoServer's default port
+EXPOSE 8080
+CMD ["/opt/geoserver/bin/startup.sh"]
