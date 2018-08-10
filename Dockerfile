@@ -11,6 +11,7 @@ RUN cd /tmp && \
 
 ENV GEOSERVER_VERSION 2.13
 ENV GEOSERVER_VERSION_NAME master
+ENV test test
 
 
 # Install geoserver
@@ -27,7 +28,7 @@ RUN curl -L http://ares.boundlessgeo.com/geoserver/${GEOSERVER_VERSION_NAME}/geo
 #     rm /tmp/*
 
 # Install plugins (Vectortiles)
-RUN curl -L http://sourceforge.net/projects/geoserver/files/GeoServer/2.13.0/extensions/geoserver-2.13.0-vectortiles-plugin.zip > /tmp/geoserver-2.13.0-vectortiles-plugin.zip && \
+RUN curl -L http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION_NAME}/extensions/geoserver-${GEOSERVER_VERSION}-vectortiles-plugin.zip > /tmp/geoserver-2.13.0-vectortiles-plugin.zip && \
     unzip /tmp/geoserver-2.13.0-vectortiles-plugin.zip -d $CATALINA_HOME/webapps/ROOT/WEB-INF/lib/ && \
     rm /tmp/*
 
