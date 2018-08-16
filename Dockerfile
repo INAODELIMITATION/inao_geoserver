@@ -90,7 +90,7 @@ RUN rm -rf $GEOSERVER_HOME/webapps/geoserver/WEB-INF/lib/jai_codec-1.1.3.jar && 
 RUN sed -i '/-jar start.jar/ s/$/-Dorg.geotools.coverage.jaiext.enabled=true/' /opt/geoserver/bin/startup.sh
 
 # Expose volume data
-VOLUME  ["/usr/local/tomcat/webapps/ROOT/data"]
+VOLUME  ["/opt/geoserver/data_dir"]
 
 # Set default locale
 ENV LANG C.UTF-8
