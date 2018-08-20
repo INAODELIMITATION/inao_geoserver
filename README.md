@@ -2,14 +2,14 @@
 
 A docker image that runs GeoServer version 2.13.2 
 
-## With many plugins :
+With many plugins :
 * OGR plugin
 * GDAL plugin
 * printing plugin
 * import plugin
 * **vector tiles plugin**
 
-## With a config file web.xml witch override the original configuration. 
+With a config file **web.xml** witch override the original configuration. 
 
 ## To run
 
