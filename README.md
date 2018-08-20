@@ -1,11 +1,17 @@
 # Docker image for GeoServer
 
-A docker image that runs GeoServer version 2.9.
+A docker image that runs GeoServer version 2.13.2 
+With many plugins :
+* OGR plugin
+* GDAL plugin
+* printing plugin
+* import plugin
+* **vector tiles plugin**
 
 ## To run
 
 ```bash
-docker run -d -p 8080:8080 camptocamp/geoserver:2.9
+docker run -d -p 8080:8080 --name geoserver -v /home/geoserver/data:/opt/geoserver/data_dir mbaussier/inao_geoserver
 ```
 
-If you want modifications to be persistent, add `-v $HOME/geoserver/data:/usr/local/tomcat/webapps/ROOT/data`.
+
