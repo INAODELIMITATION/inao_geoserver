@@ -22,7 +22,9 @@ docker run -d -p 8080:8080 --name geoserver -v /home/geoserver/data:/opt/geoserv
 Deux fichiers sont modifiés dans la configuration de geoserver : 
 1. /opt/geoserver/data_dir/gwc/geowebcache.xml 
 Les deux lignes suivantes doivent signifient que nous utilisons dans la notation des coordonées passées en (x,y) et non (y,x) & que le point de référece de l'image et celui en haut à gauche.
+
 `<yCoordinateFirst>false</yCoordinateFirst> `
+
 `<alignTopLeft>true</alignTopLeft>`
 
 2. 
