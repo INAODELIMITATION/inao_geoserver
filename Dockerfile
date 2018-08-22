@@ -89,6 +89,9 @@ RUN rm -rf $GEOSERVER_HOME/webapps/geoserver/WEB-INF/lib/jai_codec-1.1.3.jar && 
 # Enable JAI-EXT
 RUN sed -i '/-jar start.jar/ s/$/-Dorg.geotools.coverage.jaiext.enabled=true/' /opt/geoserver/bin/startup.sh
 
+# Ecrase le fichier de conf web.xml avec un autre ayant le bloc cross-origin decommenté
+COPY web.xml /opt/geoserver/webapps/geoserver/WEB-INF/web.xml
+
 # Expose volume data
 VOLUME  ["/opt/geoserver/data_dir"]
 
